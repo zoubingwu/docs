@@ -39,7 +39,7 @@ As a distributed system, a basic TiDB test cluster usually consists of 2 TiDB in
     {{< copyable "shell-regular" >}}
 
     ```shell
-    source .bash_profile
+    source .bash_profile  # or .profile
     ```
 
 3. Start the cluster in the current session:
