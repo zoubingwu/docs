@@ -8,6 +8,12 @@ Release date: April 24, 2021
 
 TiDB version: 5.0.1
 
+## Compatibility changes
+
+TiDB configuration file
+
+- The default value of the [`committer-concurrency`](/tidb-configuration-file.md#committer-concurrency) configuration item is changed from `16` to `128`.
+
 ## Improvements
 
 + TiDB
