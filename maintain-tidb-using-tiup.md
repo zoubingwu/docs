@@ -29,9 +29,9 @@ tiup cluster list
 
 ## Start the cluster
 
-The components in the TiDB cluster are started in the following order:
+The components in the TiDB cluster are started in the following order (The monitoring component is also started):
 
-**PD > TiKV > Pump > TiDB > TiFlash > Drainer > TiCDC > Prometheus > Grafana > Alertmanager**
+**PD -> TiKV -> Pump -> TiDB -> TiFlash -> Drainer**
 
 To start the cluster, run the following command:
 
@@ -201,7 +201,7 @@ tiup cluster rename ${cluster-name} ${new-name}
 
 The components in the TiDB cluster are stopped in the following order (The monitoring component is also stopped):
 
-**Alertmanager > Grafana > Prometheus > TiCDC > Drainer > TiFlash > TiDB > Pump > TiKV > PD**
+**Drainer -> TiFlash -> TiDB -> Pump -> TiKV -> PD**
 
 To stop the cluster, run the following command:
 

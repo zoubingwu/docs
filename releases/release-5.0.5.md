@@ -1,12 +1,18 @@
 ---
-title: TiDB 5.0.5 Release Note
+title: TiDB 5.0.5 Release Notes
 ---
 
-# TiDB 5.0.5 Release Note
+# TiDB 5.0.5 Release Notes
 
 Release date: December 3, 2021
 
 TiDB version: 5.0.5
+
+## Improvement
+
++ TiDB
+
+    - Upgrade the Grafana version from 7.5.7 to 7.5.11
 
 ## Bug fix
 
