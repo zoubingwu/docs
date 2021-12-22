@@ -18,7 +18,7 @@ For the detailed replication instruction, refer to the following documents by sc
 
 ## Enable online-ddl on DM
 
-In the task configuration file of DM, set the global parameter `online-ddl` to `true`, as shown below:
+When configuring the task configuration file of DM, set the global parameter `online-ddl` to `true`, as shown below:
 
 ```yaml
 # ----------- Global configuration -----------
