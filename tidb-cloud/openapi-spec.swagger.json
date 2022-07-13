@@ -31,8 +31,8 @@
         "x-codeSamples": [
           {
             "lang": "cURL",
-            "label": "CLI",
-            "source": "curl --request POST --url 'https://data.apiexample.com/api/example/batch_query/json?format=json' --header 'content-type: application/octet-stream: ' --data '{}'\n"
+            "label": "cURL",
+            "source": "curl --request POST \\\n--url https://tidbcloud.com/api/dbaas/v1.0/org \\\n--header 'Authorization: Bearer {secret_key}' \\\n--data '{}'\n"
           }
         ],
         "responses": {
