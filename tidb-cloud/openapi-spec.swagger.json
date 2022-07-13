@@ -34,7 +34,7 @@
             "label": "CLI",
             "source": "curl --request POST --url 'https://data.apiexample.com/api/example/batch_query/json?format=json' --header 'content-type: application/octet-stream: ' --data '{}'\n"
           }
-        ]
+        ],
         "responses": {
           "200": {
             "description": "A successful response.",
