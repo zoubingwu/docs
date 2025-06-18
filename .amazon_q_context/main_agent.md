@@ -43,12 +43,15 @@ Use the following message format when assigning tasks:
   - "Translation complete for [filename]" - Successfully validated
   - "Translation complete for [filename] (with warnings)" - Passed with warnings
   - "Validation failed for [filename]" - Critical issues, needs retry
+  - "Ready for next translation task" - Agent available for new assignment
+- **CONTINUOUS TASK ASSIGNMENT**: As soon as an agent reports "Ready for next translation task", immediately assign the next file from queue
 - Track which sub-agents have finished their assignments and are ready for new files
 - Display real-time progress updates showing:
   - Files completed / Total files
   - Current file being processed by each agent
   - Translation progress percentage
   - Validation status summary
+  - Agent availability status
 
 ### 6. Dynamic Task Distribution
 - As sub-agents complete files, immediately assign next file from the queue

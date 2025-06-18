@@ -104,27 +104,35 @@ monitor_translation_progress() {
         fi
     done
 
-    # Monitor loop
+        # Monitor loop - CONTINUOUS OPERATION
     while [ $FILE_INDEX -lt $TOTAL_FILES ] || [ $(active_agents_count) -gt 0 ]; do
         for agent in "${TRANSLATION_AGENTS[@]}"; do
-            if [ "${AGENT_STATUS[$agent]}" = "working" ]; then
-                # Capture agent output
-                CURRENT_OUTPUT=$(tmux capture-pane -t $agent -p | tail -n 5)
+            # Capture agent output
+            CURRENT_OUTPUT=$(tmux capture-pane -t $agent -p | tail -n 5)
 
-                                # Check for completion signals with validation status
+            # Check for readiness signal
+            if [[ "$CURRENT_OUTPUT" == *"Ready for next translation task"* ]] && [ "${AGENT_STATUS[$agent]}" != "working" ]; then
+                AGENT_STATUS[$agent]="idle"
+                echo "🔄 Agent $agent ready for new task"
+
+                # Immediately assign next file if available
+                if [ $FILE_INDEX -lt $TOTAL_FILES ]; then
+                    assign_translation_task $agent "${FILE_QUEUE[$FILE_INDEX]}"
+                    ((FILE_INDEX++))
+                fi
+            fi
+
+            # Check for working agents' status
+            if [ "${AGENT_STATUS[$agent]}" = "working" ]; then
+                # Check for completion signals with validation status
                 if [[ "$CURRENT_OUTPUT" == *"Translation complete for"* ]]; then
                     if [[ "$CURRENT_OUTPUT" == *"(with warnings)"* ]]; then
                         echo "⚠️  Agent $agent completed with warnings: ${AGENT_CURRENT_FILE[$agent]}"
                     else
                         echo "✅ Agent $agent completed successfully: ${AGENT_CURRENT_FILE[$agent]}"
                     fi
-                    AGENT_STATUS[$agent]="idle"
+                    # Note: Agent will signal readiness in next iteration
 
-                    # Assign next file if available
-                    if [ $FILE_INDEX -lt $TOTAL_FILES ]; then
-                        assign_translation_task $agent "${FILE_QUEUE[$FILE_INDEX]}"
-                        ((FILE_INDEX++))
-                    fi
                 elif [[ "$CURRENT_OUTPUT" == *"Validation failed for"* ]]; then
                     echo "❌ Agent $agent validation failed: ${AGENT_CURRENT_FILE[$agent]}"
                     local failed_file="${AGENT_CURRENT_FILE[$agent]}"

@@ -139,9 +139,48 @@ Sub-agents used: [N] (if applicable)
 Validation status: [PASSED/WARNINGS/FAILED]
 
 Translation complete for [filename]
+Ready for next translation task
+```
+
+### 13. Continuous Operation Loop
+**CRITICAL**: Sub-agents must remain active and continuously process tasks:
+
+```bash
+# Sub-agent continuous operation mode
+while true; do
+    echo "Translation Agent ready. Waiting for task assignment..."
+
+    # Wait for task assignment (file path will be provided)
+    read -r task_instruction
+
+    # Check for quit command
+    if [[ "$task_instruction" == *"/quit"* ]]; then
+        echo "Translation Agent shutting down..."
+        break
+    fi
+
+    # Check for translation task
+    if [[ "$task_instruction" == *"translate this file:"* ]]; then
+        # Extract file path from instruction
+        source_file=$(echo "$task_instruction" | grep -o "translate this file: [^;]*" | cut -d' ' -f4-)
+
+        # Process the translation
+        process_translation_task "$source_file"
+
+        # Signal completion and readiness for next task
+        echo "Translation complete for $(basename $source_file)"
+        echo "Ready for next translation task"
+    fi
+done
 ```
 
 ## Critical Processing Flow
+
+**CONTINUOUS OPERATION MODE:**
+- After completing a translation, immediately signal completion and wait for next task
+- Stay active in listening mode for new file assignments
+- Never exit unless explicitly told to quit
+- Maintain readiness for immediate task processing
 
 **FOR DIRECT TRANSLATION:**
 1. Read and analyze source file
@@ -149,6 +188,7 @@ Translation complete for [filename]
 3. Preserve all formatting and structure
 4. Save to target path with proper encoding
 5. Report completion
+6. **Enter waiting mode for next task**
 
 **FOR SUB-AGENT SPLITTING:**
 1. Analyze file structure and identify logical split points
@@ -161,6 +201,13 @@ Translation complete for [filename]
 8. Save final merged file
 9. Clean up sub-agents
 10. Report completion
+11. **Enter waiting mode for next task**
+
+**TASK WAITING PROTOCOL:**
+- After each completion, output: "Ready for next translation task"
+- Stay in active listening mode
+- Process any new file assignment immediately
+- Continue until receiving explicit "/quit" command
 
 ## Communication Standards
 - Use clear, standardized progress reporting
