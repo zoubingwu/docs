@@ -18,10 +18,13 @@ Use the following message format when assigning tasks:
 - Create sequential task assignments to maintain translation quality
 
 ### 2. Environment Setup
-- Create `.amazon_q_result/` directory structure if not exists
+- Create directory structure if not exists:
+  - `.amazon_q_result/` for translated Chinese files
+  - `.amazon_q_logs/` for logs and reports
+  - `.amazon_q_scripts/` for temporary scripts and automation
 - Prepare the tmux environment for sub-agent spawning
 - Identify your current pane and window context for proper communication management
-- Ensure proper directory structure mirrors source paths
+- Generate helper scripts for monitoring and cleanup in `.amazon_q_scripts/`
 
 ### 3. Sub-Agent Deployment
 - Spawn the required number of sub-agents using tmux split commands
@@ -29,12 +32,13 @@ Use the following message format when assigning tasks:
 - Maintain references to all sub-agent pane identifiers for communication
 - Distribute translation files sequentially across available sub-agents
 
-### 4. Task Assignment and Communication
-- Assign one file per sub-agent at a time to ensure quality
-- Send clear file path and output path instructions to each sub-agent
+### 4. Task Assignment and Communication (ORDERED CONCURRENT)
+- **ORDERED CONCURRENT PROCESSING**: Assign files in strict order from `.translation_progress.md` but allow multiple concurrent translations
+- Maintain 8 concurrent translations while preserving assignment order
+- Send clear file path and output path instructions to available sub-agents
 - Monitor initial acknowledgments from sub-agents to confirm task reception
-- Queue remaining files and assign as sub-agents complete their current tasks
-- AFTER all initial tasks are assigned, IMMEDIATELY proceed to monitoring
+- **PROGRESS MARKING**: Update `.translation_progress.md` with checkmarks upon completion
+- AFTER task assignments, IMMEDIATELY proceed to monitoring
 
 ### 5. Progress Monitoring and Coordination
 - **ACTIVATE IMMEDIATELY** - **START MONITORING WITHOUT ASKING OR WAITING**
@@ -53,11 +57,13 @@ Use the following message format when assigning tasks:
   - Validation status summary
   - Agent availability status
 
-### 6. Dynamic Task Distribution
-- As sub-agents complete files, immediately assign next file from the queue
-- Maintain load balancing across all active sub-agents
+### 6. Ordered Concurrent Task Distribution
+- **ORDERED ASSIGNMENT**: Assign files in exact order from `.translation_progress.md` to available agents
+- **HIGH CONCURRENT PROCESSING**: Maintain 8 files being translated simultaneously
+- **QUEUE MANAGEMENT**: Agents 1-8 get files 1-8, when any agent finishes, it gets the next available file in sequence
+- **PROGRESS UPDATE**: Mark completed files with ✅ in `.translation_progress.md`
 - Handle large files that may require sub-agent splitting
-- Continue until all files in `.translation_progress.md` are processed
+- Continue until all files in `.translation_progress.md` are processed and marked
 
 ### 7. Quality Assurance and Completion
 - Verify all files have been successfully translated and saved
@@ -75,13 +81,14 @@ After task assignment, execute this monitoring loop without delay:
 
 ```bash
 # Enhanced monitoring with validation tracking
+mkdir -p .amazon_q_logs
 declare -A RETRY_COUNT
 declare -A VALIDATION_STATUS
 
-while [ $(grep -c "Translation complete for" /tmp/translation_monitor.log) -lt $TOTAL_FILES ]; do
+while [ $(grep -c "Translation complete for" .amazon_q_logs/translation_monitor.log) -lt $TOTAL_FILES ]; do
     # Capture all sub-agent outputs
     for i in "${!PANES[@]}"; do
-        tmux capture-pane -t ${PANES[$i]} -p >> /tmp/translation_monitor.log
+        tmux capture-pane -t ${PANES[$i]} -p >> .amazon_q_logs/translation_monitor.log
     done
 
     # Check for validation failures and retry logic
@@ -96,7 +103,7 @@ while [ $(grep -c "Translation complete for" /tmp/translation_monitor.log) -lt $
             echo "Max retries reached for $base_file, marking as failed"
             VALIDATION_STATUS[$base_file]="FAILED_MAX_RETRIES"
         fi
-    done < <(grep "Validation failed for" /tmp/translation_monitor.log | awk '{print $NF}' | sort -u)
+    done < <(grep "Validation failed for" .amazon_q_logs/translation_monitor.log | awk '{print $NF}' | sort -u)
 
     # Check for available agents and assign new tasks
     check_and_assign_next_file

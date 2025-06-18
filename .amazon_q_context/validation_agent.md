@@ -203,8 +203,8 @@ complete_translation_with_validation() {
     fi
 
     # Move validation report to results directory
-    mkdir -p ".amazon_q_result/validation_reports"
-    mv "$validation_report" ".amazon_q_result/validation_reports/"
+    mkdir -p ".amazon_q_logs/validation_reports"
+    mv "$validation_report" ".amazon_q_logs/validation_reports/"
 }
 ```
 
@@ -213,16 +213,16 @@ complete_translation_with_validation() {
 ### Daily Validation Summary
 ```bash
 generate_validation_summary() {
-    local report_file=".amazon_q_result/validation_summary.md"
+    local report_file=".amazon_q_logs/validation_summary.md"
 
     echo "# Translation Validation Summary" > $report_file
     echo "Generated: $(date)" >> $report_file
     echo >> $report_file
 
     local total_files=$(find .amazon_q_result -name "*.md" | wc -l)
-    local validated_files=$(find .amazon_q_result/validation_reports -name "*.validation" | wc -l)
-    local critical_issues=$(grep -l "❌ CRITICAL" .amazon_q_result/validation_reports/*.validation 2>/dev/null | wc -l)
-    local warnings=$(grep -l "⚠️  WARNING" .amazon_q_result/validation_reports/*.validation 2>/dev/null | wc -l)
+    local validated_files=$(find .amazon_q_logs/validation_reports -name "*.validation" | wc -l)
+    local critical_issues=$(grep -l "❌ CRITICAL" .amazon_q_logs/validation_reports/*.validation 2>/dev/null | wc -l)
+    local warnings=$(grep -l "⚠️  WARNING" .amazon_q_logs/validation_reports/*.validation 2>/dev/null | wc -l)
 
     echo "## Overall Statistics" >> $report_file
     echo "- Total translated files: $total_files" >> $report_file
@@ -234,7 +234,7 @@ generate_validation_summary() {
     if [ $critical_issues -gt 0 ]; then
         echo >> $report_file
         echo "## Files Requiring Review" >> $report_file
-        grep -l "❌ CRITICAL" .amazon_q_result/validation_reports/*.validation 2>/dev/null | while read report; do
+        grep -l "❌ CRITICAL" .amazon_q_logs/validation_reports/*.validation 2>/dev/null | while read report; do
             local filename=$(basename "$report" .validation)
             echo "- $filename" >> $report_file
         done

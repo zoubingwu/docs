@@ -15,44 +15,111 @@ Execute TMUX commands instantaneously without delay when user requests translati
 
 ## Core Implementation Components
 
-### A. Translation Environment Setup
+### A. Translation Environment Setup (ORDERED CONCURRENT MODE)
 ```bash
 # Determine your environment context
 MAIN_AGENT_PANE=$TMUX_PANE
 MAIN_WINDOW=$(tmux display-message -t $MAIN_AGENT_PANE -p '#{window_id}')
 
-# Create output directory structure
-mkdir -p .amazon_q_result
+# Create directory structure
+mkdir -p .amazon_q_result    # For translated Chinese files only
+mkdir -p .amazon_q_logs      # For logs, reports, and temporary files
+mkdir -p .amazon_q_scripts   # For temporary scripts and automation files
 
-# Read translation file list
-TRANSLATION_FILES=($(grep -v "^#" .translation_progress.md | grep -v "^$"))
+# Read translation file list (preserve original order)
+TRANSLATION_FILES=($(grep -v "^#" .translation_progress.md | grep -v "^$" | sed 's/^[✅❌⚠️ ]*//' | grep -v "^$"))
 TOTAL_FILES=${#TRANSLATION_FILES[@]}
-echo "Found $TOTAL_FILES files to translate"
+echo "Found $TOTAL_FILES files to translate in ordered concurrent mode"
+
+# Initialize ordered concurrent processing
+CURRENT_FILE_INDEX=0
+declare -A AGENT_FILE_INDEX  # Track which file index each agent is working on
+
+# Function to mark file as completed in progress file
+mark_file_completed() {
+    local file_path=$1
+    local status_icon=$2  # ✅ for success, ⚠️ for warnings, ❌ for failed
+
+    # Update the progress file with checkmark
+    sed -i.bak "s|^${file_path}$|${status_icon} ${file_path}|" .translation_progress.md
+    echo "Progress updated: ${status_icon} ${file_path}"
+}
+
+# Function to get next file to translate
+get_next_file() {
+    if [ $CURRENT_FILE_INDEX -lt $TOTAL_FILES ]; then
+        echo "${TRANSLATION_FILES[$CURRENT_FILE_INDEX]}"
+    else
+        echo ""
+    fi
+}
+
+# Function to assign next file in order to available agent
+assign_next_ordered_file() {
+    local agent_pane=$1
+    local next_file=$(get_next_file)
+
+    if [ -n "$next_file" ]; then
+        AGENT_FILE_INDEX[$agent_pane]=$CURRENT_FILE_INDEX
+        assign_translation_task "$agent_pane" "$next_file"
+        ((CURRENT_FILE_INDEX++))
+        return 0
+    else
+        return 1
+    fi
+}
 ```
 
-### B. Translation Sub-Agent Spawning Protocol
+### B. Translation Sub-Agent Spawning Protocol (8 Agents)
 ```bash
-# Optimal layout: 4 translation agents (2x2 grid)
-echo "Spawning Translation Agent 1 (top-right)..."
+# High concurrency layout: 8 translation agents (3x3 grid with main agent)
+echo "Spawning 8 Translation Agents..."
+
+# First split: create right half
 tmux split-window -t $MAIN_WINDOW -h "q chat --trust-all-tools"
-sleep 2
+sleep 1
 
-echo "Spawning Translation Agent 2 (bottom-right)..."
-RIGHT_PANE=$(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}' | tail -n 1)
-tmux split-window -t $RIGHT_PANE -v "q chat --trust-all-tools"
-sleep 2
+# Get current panes
+CURRENT_PANES=($(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}'))
+LEFT_PANE=${CURRENT_PANES[0]}   # Main agent
+RIGHT_PANE=${CURRENT_PANES[1]}  # Agent 1
 
-echo "Spawning Translation Agent 3 (bottom-left)..."
-LEFT_PANE=$(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}' | head -n 1)
+# Split left pane vertically (main agent + agent 7)
 tmux split-window -t $LEFT_PANE -v "q chat --trust-all-tools"
-sleep 2
+sleep 1
 
-# Get all pane references
-# Layout: [Main(0)] [Agent1(2)]
-#         [Agent3(1)] [Agent2(3)]
-PANES=($(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}'))
-TRANSLATION_AGENTS=(${PANES[1]} ${PANES[2]} ${PANES[3]})
-echo "Translation agents ready: ${TRANSLATION_AGENTS[@]}"
+# Split right pane into 3 vertical sections
+tmux split-window -t $RIGHT_PANE -v "q chat --trust-all-tools"  # Agent 2
+sleep 1
+CURRENT_PANES=($(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}'))
+tmux split-window -t ${CURRENT_PANES[2]} -v "q chat --trust-all-tools"  # Agent 3
+sleep 1
+
+# Split each of the right sections horizontally to create 2x3 grid on right
+CURRENT_PANES=($(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}'))
+tmux split-window -t ${CURRENT_PANES[1]} -h "q chat --trust-all-tools"  # Agent 4
+sleep 1
+tmux split-window -t ${CURRENT_PANES[3]} -h "q chat --trust-all-tools"  # Agent 5
+sleep 1
+tmux split-window -t ${CURRENT_PANES[4]} -h "q chat --trust-all-tools"  # Agent 6
+sleep 1
+
+# Add final agent by splitting one more section
+CURRENT_PANES=($(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}'))
+tmux split-window -t ${CURRENT_PANES[-1]} -v "q chat --trust-all-tools"  # Agent 8
+sleep 1
+
+# Get final pane layout and extract translation agents (exclude main agent pane)
+ALL_PANES=($(tmux list-panes -t $MAIN_WINDOW -F '#{pane_id}'))
+TRANSLATION_AGENTS=()
+for pane in "${ALL_PANES[@]}"; do
+    if [ "$pane" != "$MAIN_AGENT_PANE" ]; then
+        TRANSLATION_AGENTS+=($pane)
+    fi
+done
+
+echo "8 Translation agents ready: ${TRANSLATION_AGENTS[@]}"
+echo "Layout: Main agent + 8 concurrent translation agents"
 ```
 
 ### C. Translation Task Assignment Protocol
@@ -69,7 +136,7 @@ done
 FILE_QUEUE=("${TRANSLATION_FILES[@]}")
 FILE_INDEX=0
 
-# Assign initial tasks
+# Sequential task assignment
 assign_translation_task() {
     local agent_pane=$1
     local file_path=$2
@@ -85,71 +152,88 @@ assign_translation_task() {
 
     AGENT_STATUS[$agent_pane]="working"
     AGENT_CURRENT_FILE[$agent_pane]="$file_path"
+    ACTIVE_TRANSLATION="$file_path"
 
-    echo "Assigned $file_path to agent $agent_pane"
+    echo "📝 Sequential task assigned: $file_path to agent $agent_pane ($(($CURRENT_FILE_INDEX + 1))/$TOTAL_FILES)"
+}
+
+# Get first available agent
+get_available_agent() {
+    for agent in "${TRANSLATION_AGENTS[@]}"; do
+        if [ "${AGENT_STATUS[$agent]}" = "idle" ]; then
+            echo "$agent"
+            return
+        fi
+    done
+    echo ""
 }
 ```
 
 ### D. Translation Progress Monitoring
 ```bash
-# Monitor translation progress
+# Monitor translation progress (ORDERED CONCURRENT MODE)
 monitor_translation_progress() {
-    echo "=== Starting Translation Monitoring ==="
+    echo "=== Starting Ordered Concurrent Translation Monitoring ==="
 
-    # Assign initial tasks to all agents
+    # Assign initial files to all available agents in order
     for agent in "${TRANSLATION_AGENTS[@]}"; do
-        if [ $FILE_INDEX -lt $TOTAL_FILES ]; then
-            assign_translation_task $agent "${FILE_QUEUE[$FILE_INDEX]}"
-            ((FILE_INDEX++))
+        if ! assign_next_ordered_file "$agent"; then
+            break  # No more files to assign
         fi
     done
 
-        # Monitor loop - CONTINUOUS OPERATION
-    while [ $FILE_INDEX -lt $TOTAL_FILES ] || [ $(active_agents_count) -gt 0 ]; do
+    echo "Initial concurrent assignments complete. Monitoring progress..."
+
+                        # Monitor loop - ORDERED CONCURRENT OPERATION
+    while [ $CURRENT_FILE_INDEX -lt $TOTAL_FILES ] || [ $(active_agents_count) -gt 0 ]; do
         for agent in "${TRANSLATION_AGENTS[@]}"; do
             # Capture agent output
             CURRENT_OUTPUT=$(tmux capture-pane -t $agent -p | tail -n 5)
 
-            # Check for readiness signal
-            if [[ "$CURRENT_OUTPUT" == *"Ready for next translation task"* ]] && [ "${AGENT_STATUS[$agent]}" != "working" ]; then
-                AGENT_STATUS[$agent]="idle"
-                echo "🔄 Agent $agent ready for new task"
-
-                # Immediately assign next file if available
-                if [ $FILE_INDEX -lt $TOTAL_FILES ]; then
-                    assign_translation_task $agent "${FILE_QUEUE[$FILE_INDEX]}"
-                    ((FILE_INDEX++))
-                fi
-            fi
-
-            # Check for working agents' status
+            # Check for working agents' completion status
             if [ "${AGENT_STATUS[$agent]}" = "working" ]; then
                 # Check for completion signals with validation status
                 if [[ "$CURRENT_OUTPUT" == *"Translation complete for"* ]]; then
+                    local completed_file="${AGENT_CURRENT_FILE[$agent]}"
+                    local completed_index="${AGENT_FILE_INDEX[$agent]}"
+
                     if [[ "$CURRENT_OUTPUT" == *"(with warnings)"* ]]; then
-                        echo "⚠️  Agent $agent completed with warnings: ${AGENT_CURRENT_FILE[$agent]}"
+                        echo "⚠️  Concurrent completion with warnings: $completed_file (order: $((completed_index + 1))/$TOTAL_FILES)"
+                        mark_file_completed "$completed_file" "⚠️"
                     else
-                        echo "✅ Agent $agent completed successfully: ${AGENT_CURRENT_FILE[$agent]}"
+                        echo "✅ Concurrent completion successful: $completed_file (order: $((completed_index + 1))/$TOTAL_FILES)"
+                        mark_file_completed "$completed_file" "✅"
                     fi
-                    # Note: Agent will signal readiness in next iteration
+
+                    # Mark agent as ready
+                    AGENT_STATUS[$agent]="idle"
+                    AGENT_CURRENT_FILE[$agent]=""
+                    unset AGENT_FILE_INDEX[$agent]
 
                 elif [[ "$CURRENT_OUTPUT" == *"Validation failed for"* ]]; then
-                    echo "❌ Agent $agent validation failed: ${AGENT_CURRENT_FILE[$agent]}"
+                    echo "❌ Concurrent validation failed: ${AGENT_CURRENT_FILE[$agent]}"
                     local failed_file="${AGENT_CURRENT_FILE[$agent]}"
 
                     # Check retry count
                     if [ ${RETRY_COUNT[$failed_file]:-0} -lt 3 ]; then
                         echo "Retrying $failed_file (attempt $((${RETRY_COUNT[$failed_file]:-0} + 1)))"
                         RETRY_COUNT[$failed_file]=$((${RETRY_COUNT[$failed_file]:-0} + 1))
+                        # Keep same agent for retry (maintain order index)
                         assign_translation_task $agent "$failed_file"
                     else
-                        echo "Max retries reached for $failed_file, skipping"
+                        echo "Max retries reached for $failed_file, marking as failed"
+                        mark_file_completed "$failed_file" "❌"
                         AGENT_STATUS[$agent]="idle"
-                        if [ $FILE_INDEX -lt $TOTAL_FILES ]; then
-                            assign_translation_task $agent "${FILE_QUEUE[$FILE_INDEX]}"
-                            ((FILE_INDEX++))
-                        fi
+                        AGENT_CURRENT_FILE[$agent]=""
+                        unset AGENT_FILE_INDEX[$agent]
                     fi
+                fi
+            fi
+
+            # Check for readiness signal and assign next ordered file
+            if [[ "$CURRENT_OUTPUT" == *"Ready for next translation task"* ]] && [ "${AGENT_STATUS[$agent]}" = "idle" ]; then
+                if ! assign_next_ordered_file "$agent"; then
+                    echo "📋 No more files to assign to agent $agent"
                 fi
             fi
         done
@@ -208,12 +292,17 @@ spawn_translation_sub_agents() {
 ```bash
 #!/bin/bash
 # === TRANSLATION SYSTEM ACTIVATION ===
+# Save this script to .amazon_q_scripts/translation_system.sh
+
+SCRIPT_DIR=".amazon_q_scripts"
+mkdir -p "$SCRIPT_DIR"
+
 echo "=== TRANSLATION AGENT SYSTEM STARTING ==="
 
 # Step 1: Environment Setup
 MAIN_AGENT_PANE=$TMUX_PANE
 MAIN_WINDOW=$(tmux display-message -t $MAIN_AGENT_PANE -p '#{window_id}')
-mkdir -p .amazon_q_result
+mkdir -p .amazon_q_result .amazon_q_logs .amazon_q_scripts
 
 # Step 2: Load translation file list
 if [ ! -f ".translation_progress.md" ]; then
@@ -224,16 +313,41 @@ fi
 TRANSLATION_FILES=($(grep -v "^#" .translation_progress.md | grep -v "^$"))
 echo "Loaded ${#TRANSLATION_FILES[@]} files for translation"
 
-# Step 3: Spawn translation agents
+# Step 3: Create helper scripts
+cat > "$SCRIPT_DIR/agent_monitor.sh" << 'EOF'
+#!/bin/bash
+# Agent monitoring helper script
+monitor_agent() {
+    local agent_pane=$1
+    tmux capture-pane -t $agent_pane -p | tail -n 10
+}
+EOF
+
+cat > "$SCRIPT_DIR/cleanup_agents.sh" << 'EOF'
+#!/bin/bash
+# Agent cleanup script
+echo "Cleaning up translation agents..."
+for agent in "${TRANSLATION_AGENTS[@]}"; do
+    tmux send-keys -t $agent "/quit" C-m
+done
+EOF
+
+chmod +x "$SCRIPT_DIR"/*.sh
+
+# Step 4: Spawn translation agents
 echo "Spawning translation agents..."
 # ... (spawning code as above)
 
-# Step 4: Start monitoring and task distribution
+# Step 5: Start monitoring and task distribution
 monitor_translation_progress
 
-# Step 5: Quality verification
+# Step 6: Quality verification
 echo "Verifying translation quality..."
-for file in "${TRANSLATION_FILES[@]}"; do
+verification_script="$SCRIPT_DIR/verify_translations.sh"
+cat > "$verification_script" << 'EOF'
+#!/bin/bash
+echo "=== TRANSLATION VERIFICATION ==="
+for file in "$@"; do
     output_file=".amazon_q_result/$file"
     if [ -f "$output_file" ]; then
         echo "✓ $file -> $output_file"
@@ -241,14 +355,15 @@ for file in "${TRANSLATION_FILES[@]}"; do
         echo "✗ Missing: $output_file"
     fi
 done
+EOF
+chmod +x "$verification_script"
+bash "$verification_script" "${TRANSLATION_FILES[@]}"
 
-# Step 6: Cleanup
-echo "Cleaning up agents..."
-for agent in "${TRANSLATION_AGENTS[@]}"; do
-    tmux send-keys -t $agent "/quit" C-m
-done
+# Step 7: Cleanup using script
+bash "$SCRIPT_DIR/cleanup_agents.sh"
 
 echo "=== TRANSLATION SYSTEM COMPLETE ==="
+echo "Scripts saved in: $SCRIPT_DIR/"
 ```
 
 ## Translation Quality Standards

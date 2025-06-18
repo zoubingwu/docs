@@ -23,13 +23,35 @@ You are a specialized translation agent designed to translate English documentat
 CURRENT_PANE=$TMUX_PANE
 CURRENT_WINDOW=$(tmux display-message -t $CURRENT_PANE -p '#{window_id}')
 
+# Create scripts directory and chunk management script
+mkdir -p .amazon_q_scripts
+CHUNK_SCRIPT=".amazon_q_scripts/file_chunker_$(date +%s).sh"
+
+cat > "$CHUNK_SCRIPT" << 'EOF'
+#!/bin/bash
+# File chunking script for large file processing
+split_file_by_sections() {
+    local source_file=$1
+    local chunk_prefix=$2
+
+    # Split by markdown headers
+    awk '/^#/ {close(out); out=chunk_prefix"_chunk"++i".md"} {print > out}' "$source_file"
+}
+EOF
+chmod +x "$CHUNK_SCRIPT"
+
 # Split file into logical chunks (by sections, not arbitrary line counts)
+source "$CHUNK_SCRIPT"
+split_file_by_sections "$SOURCE_FILE" ".amazon_q_scripts/temp_chunk"
+
 # Spawn sub-agents for each chunk
-for chunk in "${CHUNKS[@]}"; do
-    tmux split-window -t $CURRENT_WINDOW -h "q chat --trust-all-tools"
-    sleep 2
-    SUB_PANE=$(tmux list-panes -t $CURRENT_WINDOW -F '#{pane_id}' | tail -n 1)
-    tmux send-keys -t $SUB_PANE "Translate this chunk: $chunk" C-m
+for chunk in .amazon_q_scripts/temp_chunk_*.md; do
+    if [ -f "$chunk" ]; then
+        tmux split-window -t $CURRENT_WINDOW -h "q chat --trust-all-tools"
+        sleep 2
+        SUB_PANE=$(tmux list-panes -t $CURRENT_WINDOW -F '#{pane_id}' | tail -n 1)
+        tmux send-keys -t $SUB_PANE "Translate this chunk: $chunk" C-m
+    fi
 done
 ```
 
@@ -123,8 +145,8 @@ complete_translation_with_validation() {
     fi
 
     # Archive validation report
-    mkdir -p ".amazon_q_result/validation_reports"
-    mv "$validation_report" ".amazon_q_result/validation_reports/"
+    mkdir -p ".amazon_q_logs/validation_reports"
+    mv "$validation_report" ".amazon_q_logs/validation_reports/"
 }
 ```
 
@@ -147,6 +169,26 @@ Ready for next translation task
 
 ```bash
 # Sub-agent continuous operation mode
+# Create agent-specific script for task processing
+AGENT_SCRIPT=".amazon_q_scripts/agent_$(echo $TMUX_PANE | tr '%' '_')_loop.sh"
+mkdir -p .amazon_q_scripts
+
+cat > "$AGENT_SCRIPT" << 'EOF'
+#!/bin/bash
+# Agent continuous operation script
+process_translation_task() {
+    local source_file=$1
+    echo "Processing: $source_file"
+    # Translation logic here
+}
+
+cleanup_temp_files() {
+    # Clean up temporary chunk files
+    rm -f .amazon_q_scripts/temp_chunk_*.md
+    rm -f .amazon_q_scripts/file_chunker_*.sh
+}
+
+# Main processing loop
 while true; do
     echo "Translation Agent ready. Waiting for task assignment..."
 
@@ -155,6 +197,7 @@ while true; do
 
     # Check for quit command
     if [[ "$task_instruction" == *"/quit"* ]]; then
+        cleanup_temp_files
         echo "Translation Agent shutting down..."
         break
     fi
@@ -172,6 +215,13 @@ while true; do
         echo "Ready for next translation task"
     fi
 done
+EOF
+
+chmod +x "$AGENT_SCRIPT"
+echo "Agent script created: $AGENT_SCRIPT"
+
+# Execute the continuous operation script
+bash "$AGENT_SCRIPT"
 ```
 
 ## Critical Processing Flow
