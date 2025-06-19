@@ -1,0 +1,116 @@
+- [使用 AWS DMS 从 Amazon RDS for Oracle 迁移](/tidb-cloud/migrate-from-oracle-using-aws-dms.md)
+  - 将数据导入 TiDB Cloud Dedicated
+    - [导入示例数据](/tidb-cloud/import-sample-data.md)
+    - [从云存储导入 CSV 文件](/tidb-cloud/import-csv-files.md)
+    - [从云存储导入 Parquet 文件](/tidb-cloud/import-parquet-files.md)
+    - [使用 MySQL CLI 导入](/tidb-cloud/import-with-mysql-cli.md)
+  - 将数据导入 TiDB Cloud Serverless
+    - [导入示例数据](/tidb-cloud/import-sample-data-serverless.md)
+    - [导入本地文件](/tidb-cloud/tidb-cloud-import-local-files.md)
+    - [从云存储导入 CSV 文件](/tidb-cloud/import-csv-files-serverless.md)
+    - [从云存储导入 Parquet 文件](/tidb-cloud/import-parquet-files-serverless.md)
+    - [使用 MySQL CLI 导入](/tidb-cloud/import-with-mysql-cli-serverless.md)
+  - 参考
+    - [为 TiDB Cloud Dedicated 配置外部存储访问](/tidb-cloud/dedicated-external-storage.md)
+    - [为 TiDB Cloud Serverless 配置外部存储访问](/tidb-cloud/serverless-external-storage.md)
+    - [数据导入的命名约定](/tidb-cloud/naming-conventions-for-data-import.md)
+    - [导入数据的 CSV 配置](/tidb-cloud/csv-config-for-import-data.md)
+    - [排查从 Amazon S3 导入数据期间的访问被拒绝错误](/tidb-cloud/troubleshoot-import-access-denied-error.md)
+    - [数据迁移的预检查错误、迁移错误和警报](/tidb-cloud/tidb-cloud-dm-precheck-and-troubleshooting.md)
+    - [将 AWS DMS 连接到 TiDB Cloud 集群](/tidb-cloud/tidb-cloud-connect-aws-dms.md)
+- 探索数据
+  - [SQL 编辑器中的 Chat2Query](/tidb-cloud/explore-data-with-chat2query.md) ![BETA](/media/tidb-cloud/blank_transparent_placeholder.png)
+  - [SQL 代理账户](/tidb-cloud/sql-proxy-account.md)
+- 向量搜索 ![BETA](/media/tidb-cloud/blank_transparent_placeholder.png)
+  - [概述](/tidb-cloud/vector-search-overview.md)
+  - 快速上手
+    - [使用 SQL 快速上手](/tidb-cloud/vector-search-get-started-using-sql.md)
+    - [使用 Python 快速上手](/tidb-cloud/vector-search-get-started-using-python.md)
+  - 集成
+    - [概述](/tidb-cloud/vector-search-integration-overview.md)
+    - AI 框架
+      - [LlamaIndex](/tidb-cloud/vector-search-integrate-with-llamaindex.md)
+      - [Langchain](/tidb-cloud/vector-search-integrate-with-langchain.md)
+    - AI 服务
+      - [Amazon Bedrock](/tidb-cloud/vector-search-integrate-with-amazon-bedrock.md)
+    - 嵌入模型/服务
+      - [Jina AI](/tidb-cloud/vector-search-integrate-with-jinaai-embedding.md)
+    - ORM 库
+      - [SQLAlchemy](/tidb-cloud/vector-search-integrate-with-sqlalchemy.md)
+      - [peewee](/tidb-cloud/vector-search-integrate-with-peewee.md)
+      - [Django ORM](/tidb-cloud/vector-search-integrate-with-django-orm.md)
+  - 文本搜索
+    - [使用 SQL 进行全文搜索](/tidb-cloud/vector-search-full-text-search-sql.md)
+    - [使用 Python 进行全文搜索](/tidb-cloud/vector-search-full-text-search-python.md)
+    - [混合搜索](/tidb-cloud/vector-search-hybrid-search.md)
+  - 参考
+    - [向量数据类型](/tidb-cloud/vector-search-data-types.md)
+    - [向量函数和运算符](/tidb-cloud/vector-search-functions-and-operators.md)
+    - [向量索引](/tidb-cloud/vector-search-index.md)
+  - [提高性能](/tidb-cloud/vector-search-improve-performance.md)
+  - [限制](/tidb-cloud/vector-search-limitations.md)
+  - [更新日志](/tidb-cloud/vector-search-changelogs.md)
+- 数据服务 ![BETA](/media/tidb-cloud/blank_transparent_placeholder.png)
+  - [概述](/tidb-cloud/data-service-overview.md)
+  - [快速上手](/tidb-cloud/data-service-get-started.md)
+  - Chat2Query API
+    - [快速上手](/tidb-cloud/use-chat2query-api.md)
+    - [启动多轮 Chat2Query](/tidb-cloud/use-chat2query-sessions.md)
+    - [使用知识库](/tidb-cloud/use-chat2query-knowledge.md)
+  - [管理数据应用](/tidb-cloud/data-service-manage-data-app.md)
+  - [管理端点](/tidb-cloud/data-service-manage-endpoint.md)
+  - [API 密钥](/tidb-cloud/data-service-api-key.md)
+  - [自定义域名](/tidb-cloud/data-service-custom-domain.md)
+  - [集成](/tidb-cloud/data-service-integrations.md)
+  - [在 Postman 中运行](/tidb-cloud/data-service-postman-integration.md)
+  - [使用 GitHub 自动部署](/tidb-cloud/data-service-manage-github-connection.md)
+  - [将 OpenAPI 规范与 Next.js 结合使用](/tidb-cloud/data-service-oas-with-nextjs.md)
+  - [数据应用配置文件](/tidb-cloud/data-service-app-config-files.md)
+  - [响应和状态代码](/tidb-cloud/data-service-response-and-status-code.md)
+- 流式传输数据
+  - [Changefeed 概述](/tidb-cloud/changefeed-overview.md)
+  - [到 MySQL Sink](/tidb-cloud/changefeed-sink-to-mysql.md)
+  - [到 Kafka Sink](/tidb-cloud/changefeed-sink-to-apache-kafka.md)
+  - [到 Pulsar Sink](/tidb-cloud/changefeed-sink-to-apache-pulsar.md)
+  - [到 TiDB Cloud Sink](/tidb-cloud/changefeed-sink-to-tidb-cloud.md)
+  - [到云存储](/tidb-cloud/changefeed-sink-to-cloud-storage.md)
+  - 参考
+    - [在 AWS 中设置自托管 Kafka Private Link 服务](/tidb-cloud/setup-aws-self-hosted-kafka-private-link-service.md)
+    - [在 Azure 中设置自托管 Kafka Private Link 服务](/tidb-cloud/setup-azure-self-hosted-kafka-private-link-service.md)
+    - [在 Google Cloud 中设置自托管 Kafka Private Service Connect](/tidb-cloud/setup-self-hosted-kafka-private-service-connect.md)
+- 灾难恢复
+  - [恢复组概述](/tidb-cloud/recovery-group-overview.md)
+  - [快速上手](/tidb-cloud/recovery-group-get-started.md)
+  - [故障转移和重新保护数据库](/tidb-cloud/recovery-group-failover.md)
+  - [删除恢复组](/tidb-cloud/recovery-group-delete.md)
+- 安全
+  - 身份访问控制
+    - [密码验证](/tidb-cloud/tidb-cloud-password-authentication.md)
+    - [标准 SSO 身份验证](/tidb-cloud/tidb-cloud-sso-authentication.md)
+    - [组织 SSO 身份验证](/tidb-cloud/tidb-cloud-org-sso-authentication.md)
+    - [身份访问管理](/tidb-cloud/manage-user-access.md)
+    - [OAuth 2.0](/tidb-cloud/oauth2.md)
+  - 网络访问控制
+    - TiDB Cloud Serverless
+      - [通过私有终端节点连接](/tidb-cloud/set-up-private-endpoint-connections-serverless.md)
+      - [为公共端点配置防火墙规则](/tidb-cloud/configure-serverless-firewall-rules-for-public-endpoints.md)
+      - [到 TiDB Cloud Serverless 的 TLS 连接](/tidb-cloud/secure-connections-to-serverless-clusters.md)
+    - TiDB Cloud Dedicated
+      - [配置 IP 访问列表](/tidb-cloud/configure-ip-access-list.md)
+      - [通过 AWS 上的私有终端节点连接](/tidb-cloud/set-up-private-endpoint-connections.md)
+      - [通过 Azure 上的私有终端节点连接](/tidb-cloud/set-up-private-endpoint-connections-on-azure.md)
+      - [通过 Google Cloud 上的私有终端节点连接](/tidb-cloud/set-up-private-endpoint-connections-on-google-cloud.md)
+      - [通过 VPC 对等连接](/tidb-cloud/set-up-vpc-peering-connections.md)
+      - [到 TiDB Cloud Dedicated 的 TLS 连接](/tidb-cloud/tidb-cloud-tls-connect-to-dedicated.md)
+  - 数据访问控制
+      - [使用客户管理的加密密钥进行静态加密](/tidb-cloud/tidb-cloud-encrypt-cmek.md)
+  - 数据库访问控制
+    - [配置集群密码设置](/tidb-cloud/configure-security-settings.md)
+  - 审计管理
+    - [数据库审计日志](/tidb-cloud/tidb-cloud-auditing.md)
+    - [控制台审计日志](/tidb-cloud/tidb-cloud-console-auditing.md)
+- 账单
+  - [发票](/tidb-cloud/tidb-cloud-billing.md#invoices)
+  - [账单详情](/tidb-cloud/tidb-cloud-billing.md#billing-details)
+  - [成本资源管理器](/tidb-cloud/tidb-cloud-billing.md#cost-explorer)
+  - [账单资料](/tidb-cloud/tidb-cloud-billing.md#billing-profile)

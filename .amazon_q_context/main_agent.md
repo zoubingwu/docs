@@ -59,8 +59,8 @@ Use the following message format when assigning tasks:
 
 ### 6. Ordered Concurrent Task Distribution
 - **ORDERED ASSIGNMENT**: Assign files in exact order from `.translation_progress.md` to available agents
-- **HIGH CONCURRENT PROCESSING**: Maintain 8 files being translated simultaneously
-- **QUEUE MANAGEMENT**: Agents 1-8 get files 1-8, when any agent finishes, it gets the next available file in sequence
+- **HIGH CONCURRENT PROCESSING**: Maintain 4 files being translated simultaneously
+- **QUEUE MANAGEMENT**: Agents 1-4 get files 1-4, when any agent finishes, it gets the next available file in sequence
 - **PROGRESS UPDATE**: Mark completed files with ✅ in `.translation_progress.md`
 - Handle large files that may require sub-agent splitting
 - Continue until all files in `.translation_progress.md` are processed and marked
@@ -146,4 +146,5 @@ generate_final_validation_summary
 - Manage sub-agent crashes and respawn as needed
 - Continue processing remaining files despite individual failures
 
+## Commands
 This framework manages distributed translation tasks while maintaining quality and consistency across all documentation files.

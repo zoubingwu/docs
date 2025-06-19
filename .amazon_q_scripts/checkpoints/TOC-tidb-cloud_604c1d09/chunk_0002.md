@@ -1,0 +1,27 @@
+## 快速开始
+
+- 为什么选择 TiDB Cloud
+  - [TiDB Cloud 介绍](/tidb-cloud/tidb-cloud-intro.md)
+  - [MySQL 兼容性](/mysql-compatibility.md)
+- TiDB Cloud 快速开始
+  - [试用 TiDB Cloud Serverless](/tidb-cloud/tidb-cloud-quickstart.md)
+  - [试用 TiDB + AI](/tidb-cloud/vector-search-get-started-using-python.md)
+  - [试用 HTAP](/tidb-cloud/tidb-cloud-htap-quickstart.md)
+  - [试用 TiDB Cloud CLI](/tidb-cloud/get-started-with-cli.md)
+  - [执行 PoC](/tidb-cloud/tidb-cloud-poc.md)
+- 关键概念
+  - [概览](/tidb-cloud/key-concepts.md)
+  - [架构](/tidb-cloud/architecture-concepts.md)
+  - [数据库 Schema](/tidb-cloud/database-schema-concepts.md)
+  - [事务](/tidb-cloud/transaction-concepts.md)
+  - [SQL](/tidb-cloud/sql-concepts.md)
+  - [AI 功能](/tidb-cloud/ai-feature-concepts.md)
+  - [数据服务](/tidb-cloud/data-service-concepts.md) ![BETA](/media/tidb-cloud/blank_transparent_placeholder.png)
+  - [可扩展性](/tidb-cloud/scalability-concepts.md)
+  - 高可用性
+    - [TiDB Cloud Serverless 中的高可用性](/tidb-cloud/serverless-high-availability.md)
+    - [TiDB Cloud Dedicated 中的高可用性](/tidb-cloud/high-availability-with-multi-az.md)
+  - [监控](/tidb-cloud/monitoring-concepts.md)
+  - [数据流](/tidb-cloud/data-streaming-concepts.md)
+  - [备份 & 恢复](/tidb-cloud/backup-and-restore-concepts.md)
+  - [安全性](/tidb-cloud/security-concepts.md)

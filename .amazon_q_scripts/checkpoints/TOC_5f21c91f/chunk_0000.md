@@ -1,0 +1,137 @@
+- [文档首页](https://docs.pingcap.com/)
+- 关于 TiDB Self-Managed
+  - [什么是 TiDB Self-Managed](/overview.md)
+  - [TiDB 8.1 Release Notes](/releases/release-8.1.0.md)
+  - [功能特性](/basic-features.md)
+  - [MySQL 兼容性](/mysql-compatibility.md)
+  - [TiDB 限制](/tidb-limitations.md)
+  - [致谢](/credits.md)
+  - [Roadmap](https://docs.pingcap.com/tidb/dev/tidb-roadmap)
+- 快速上手
+  - [试用 TiDB](/quick-start-with-tidb.md)
+  - [试用 HTAP](/quick-start-with-htap.md)
+  - [学习 TiDB SQL](/basic-sql-operations.md)
+  - [学习 HTAP](/explore-htap.md)
+  - [导入示例数据库](/import-example-data.md)
+- 开发
+  - [概览](/develop/dev-guide-overview.md)
+  - 快速上手
+    - [构建 TiDB Cloud Serverless 集群](/develop/dev-guide-build-cluster-in-cloud.md)
+    - [在 TiDB 中使用 CRUD SQL](/develop/dev-guide-tidb-crud-sql.md)
+  - 示例应用
+    - Java
+      - [JDBC](/develop/dev-guide-sample-application-java-jdbc.md)
+      - [MyBatis](/develop/dev-guide-sample-application-java-mybatis.md)
+      - [Hibernate](/develop/dev-guide-sample-application-java-hibernate.md)
+      - [Spring Boot](/develop/dev-guide-sample-application-java-spring-boot.md)
+    - Go
+      - [Go-MySQL-Driver](/develop/dev-guide-sample-application-golang-sql-driver.md)
+      - [GORM](/develop/dev-guide-sample-application-golang-gorm.md)
+    - Python
+      - [mysqlclient](/develop/dev-guide-sample-application-python-mysqlclient.md)
+      - [MySQL Connector/Python](/develop/dev-guide-sample-application-python-mysql-connector.md)
+      - [PyMySQL](/develop/dev-guide-sample-application-python-pymysql.md)
+      - [SQLAlchemy](/develop/dev-guide-sample-application-python-sqlalchemy.md)
+      - [peewee](/develop/dev-guide-sample-application-python-peewee.md)
+      - [Django](/develop/dev-guide-sample-application-python-django.md)
+    - Node.js
+      - [node-mysql2](/develop/dev-guide-sample-application-nodejs-mysql2.md)
+      - [mysql.js](/develop/dev-guide-sample-application-nodejs-mysqljs.md)
+      - [Prisma](/develop/dev-guide-sample-application-nodejs-prisma.md)
+      - [Sequelize](/develop/dev-guide-sample-application-nodejs-sequelize.md)
+      - [TypeORM](/develop/dev-guide-sample-application-nodejs-typeorm.md)
+      - [Next.js](/develop/dev-guide-sample-application-nextjs.md)
+      - [AWS Lambda](/develop/dev-guide-sample-application-aws-lambda.md)
+    - Ruby
+      - [mysql2](/develop/dev-guide-sample-application-ruby-mysql2.md)
+      - [Rails](/develop/dev-guide-sample-application-ruby-rails.md)
+  - 连接 TiDB
+    - GUI 数据库工具
+      - [JetBrains DataGrip](/develop/dev-guide-gui-datagrip.md)
+      - [DBeaver](/develop/dev-guide-gui-dbeaver.md)
+      - [VS Code](/develop/dev-guide-gui-vscode-sqltools.md)
+      - [MySQL Workbench](/develop/dev-guide-gui-mysql-workbench.md)
+      - [Navicat](/develop/dev-guide-gui-navicat.md)
+    - [选择 Driver 或 ORM](/develop/dev-guide-choose-driver-or-orm.md)
+    - [连接到 TiDB](/develop/dev-guide-connect-to-tidb.md)
+    - [连接池和连接参数](/develop/dev-guide-connection-parameters.md)
+  - 设计数据库 Schema
+    - [概览](/develop/dev-guide-schema-design-overview.md)
+    - [创建数据库](/develop/dev-guide-create-database.md)
+    - [创建表](/develop/dev-guide-create-table.md)
+    - [创建二级索引](/develop/dev-guide-create-secondary-indexes.md)
+  - 写入数据
+    - [插入数据](/develop/dev-guide-insert-data.md)
+    - [更新数据](/develop/dev-guide-update-data.md)
+    - [删除数据](/develop/dev-guide-delete-data.md)
+    - [使用 Time to Live 定期删除数据](/time-to-live.md)
+    - [预处理语句](/develop/dev-guide-prepared-statement.md)
+  - 读取数据
+    - [从单表查询数据](/develop/dev-guide-get-data-from-single-table.md)
+    - [多表 Join 查询](/develop/dev-guide-join-tables.md)
+    - [子查询](/develop/dev-guide-use-subqueries.md)
+    - [分页结果](/develop/dev-guide-paginate-results.md)
+    - [视图](/develop/dev-guide-use-views.md)
+    - [临时表](/develop/dev-guide-use-temporary-tables.md)
+    - [公共表表达式](/develop/dev-guide-use-common-table-expression.md)
+    - 读取副本数据
+      - [Follower Read](/develop/dev-guide-use-follower-read.md)
+      - [Stale Read](/develop/dev-guide-use-stale-read.md)
+    - [HTAP 查询](/develop/dev-guide-hybrid-oltp-and-olap-queries.md)
+  - 事务
+    - [概览](/develop/dev-guide-transaction-overview.md)
+    - [乐观事务和悲观事务](/develop/dev-guide-optimistic-and-pessimistic-transaction.md)
+    - [事务约束](/develop/dev-guide-transaction-restraints.md)
+    - [处理事务错误](/develop/dev-guide-transaction-troubleshoot.md)
+  - 优化
+    - [概览](/develop/dev-guide-optimize-sql-overview.md)
+    - [SQL 性能调优](/develop/dev-guide-optimize-sql.md)
+    - [性能调优最佳实践](/develop/dev-guide-optimize-sql-best-practices.md)
+    - [索引最佳实践](/develop/dev-guide-index-best-practice.md)
+    - 其他优化方法
+      - [避免隐式类型转换](/develop/dev-guide-implicit-type-conversion.md)
+      - [唯一序列号生成](/develop/dev-guide-unique-serial-number-generation.md)
+  - 故障排除
+    - [SQL 或事务问题](/develop/dev-guide-troubleshoot-overview.md)
+    - [不稳定的结果集](/develop/dev-guide-unstable-result-set.md)
+    - [超时](/develop/dev-guide-timeouts-in-tidb.md)
+  - 参考
+    - [Bookshop 示例应用](/develop/dev-guide-bookshop-schema-design.md)
+    - 指南
+      - [对象命名约定](/develop/dev-guide-object-naming-guidelines.md)
+      - [SQL 开发规范](/develop/dev-guide-sql-development-specification.md)
+  - 云原生开发环境
+    - [Gitpod](/develop/dev-guide-playground-gitpod.md)
+  - 第三方支持
+    - [TiDB 支持的第三方工具](/develop/dev-guide-third-party-support.md)
+    - [第三方工具的已知不兼容问题](/develop/dev-guide-third-party-tools-compatibility.md)
+    - [ProxySQL 集成指南](/develop/dev-guide-proxysql-integration.md)
+    - [Amazon AppFlow 集成指南](/develop/dev-guide-aws-appflow-integration.md)
+- 部署
+  - [软硬件要求](/hardware-and-software-requirements.md)
+  - [环境配置检查清单](/check-before-deployment.md)
+  - 规划集群拓扑
+    - [最小化拓扑](/minimal-deployment-topology.md)
+    - [TiFlash 拓扑](/tiflash-deployment-topology.md)
+    - [TiProxy 拓扑](/tiproxy/tiproxy-deployment-topology.md)
+    - [TiCDC 拓扑](/ticdc-deployment-topology.md)
+    - [TiDB Binlog 拓扑](/tidb-binlog-deployment-topology.md)
+    - [TiSpark 拓扑](/tispark-deployment-topology.md)
+    - [跨数据中心拓扑](/geo-distributed-deployment-topology.md)
+    - [混合拓扑](/hybrid-deployment-topology.md)
+  - 安装和启动
+    - [使用 TiUP](/production-deployment-using-tiup.md)
+    - [在 Kubernetes 上部署](/tidb-in-kubernetes.md)
+  - [验证集群状态](/post-installation-check.md)
+  - 测试集群性能
+    - [使用 Sysbench 测试 TiDB](/benchmark/benchmark-tidb-using-sysbench.md)
+    - [使用 TPC-C 测试 TiDB](/benchmark/benchmark-tidb-using-tpcc.md)
+    - [使用 CH-benCHmark 测试 TiDB](/benchmark/benchmark-tidb-using-ch.md)
+- 迁移
+  - [概览](/migration-overview.md)
+  - [迁移工具](/migration-tools.md)
+  - [导入最佳实践](/tidb-lightning/data-import-best-practices.md)
+  - 迁移场景
+    - [从 Aurora 迁移](/migrate-aurora-to-tidb.md)
+    - [从 MySQL 迁移小数据集](/migrate-small-mysql-to-tidb.md)
+    - [从 MySQL 迁移大数据集](/migrate-large-mysql-to-tidb.md)

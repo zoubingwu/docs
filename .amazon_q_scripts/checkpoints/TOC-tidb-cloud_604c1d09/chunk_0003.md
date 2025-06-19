@@ -1,0 +1,98 @@
+## 开发
+
+- 开发快速入门
+  - [开发者指南概览](/develop/dev-guide-overview.md)
+  - [构建 TiDB Cloud Serverless 集群](/develop/dev-guide-build-cluster-in-cloud.md)
+  - [TiDB 中的 CRUD SQL](/develop/dev-guide-tidb-crud-sql.md)
+- 连接到 TiDB Cloud
+  - GUI 数据库工具
+    - [JetBrains DataGrip](/develop/dev-guide-gui-datagrip.md)
+    - [DBeaver](/develop/dev-guide-gui-dbeaver.md)
+    - [VS Code](/develop/dev-guide-gui-vscode-sqltools.md)
+    - [MySQL Workbench](/develop/dev-guide-gui-mysql-workbench.md)
+    - [Navicat](/develop/dev-guide-gui-navicat.md)
+  - [选择驱动或 ORM](/develop/dev-guide-choose-driver-or-orm.md)
+  - BI
+    - [Looker Studio](/tidb-cloud/dev-guide-bi-looker-studio.md)
+  - Java
+    - [JDBC](/develop/dev-guide-sample-application-java-jdbc.md)
+    - [MyBatis](/develop/dev-guide-sample-application-java-mybatis.md)
+    - [Hibernate](/develop/dev-guide-sample-application-java-hibernate.md)
+    - [Spring Boot](/develop/dev-guide-sample-application-java-spring-boot.md)
+    - [连接池和连接参数](/develop/dev-guide-connection-parameters.md)
+  - Go
+    - [Go-MySQL-Driver](/develop/dev-guide-sample-application-golang-sql-driver.md)
+    - [GORM](/develop/dev-guide-sample-application-golang-gorm.md)
+  - Python
+    - [mysqlclient](/develop/dev-guide-sample-application-python-mysqlclient.md)
+    - [MySQL Connector/Python](/develop/dev-guide-sample-application-python-mysql-connector.md)
+    - [PyMySQL](/develop/dev-guide-sample-application-python-pymysql.md)
+    - [SQLAlchemy](/develop/dev-guide-sample-application-python-sqlalchemy.md)
+    - [peewee](/develop/dev-guide-sample-application-python-peewee.md)
+    - [Django](/develop/dev-guide-sample-application-python-django.md)
+  - Node.js
+    - [node-mysql2](/develop/dev-guide-sample-application-nodejs-mysql2.md)
+    - [mysql.js](/develop/dev-guide-sample-application-nodejs-mysqljs.md)
+    - [Prisma](/develop/dev-guide-sample-application-nodejs-prisma.md)
+    - [Sequelize](/develop/dev-guide-sample-application-nodejs-sequelize.md)
+    - [TypeORM](/develop/dev-guide-sample-application-nodejs-typeorm.md)
+    - [Next.js](/develop/dev-guide-sample-application-nextjs.md)
+    - [AWS Lambda](/develop/dev-guide-sample-application-aws-lambda.md)
+  - Ruby
+    - [mysql2](/develop/dev-guide-sample-application-ruby-mysql2.md)
+    - [Rails](/develop/dev-guide-sample-application-ruby-rails.md)
+  - [WordPress](/tidb-cloud/dev-guide-wordpress.md)
+  - Serverless Driver ![BETA](/media/tidb-cloud/blank_transparent_placeholder.png)
+    - [TiDB Cloud Serverless Driver](/tidb-cloud/serverless-driver.md)
+    - [Node.js 示例](/tidb-cloud/serverless-driver-node-example.md)
+    - [Prisma 示例](/tidb-cloud/serverless-driver-prisma-example.md)
+    - [Kysely 示例](/tidb-cloud/serverless-driver-kysely-example.md)
+    - [Drizzle 示例](/tidb-cloud/serverless-driver-drizzle-example.md)
+- 开发参考
+  - 设计数据库 Schema
+    - [概览](/develop/dev-guide-schema-design-overview.md)
+    - [创建数据库](/develop/dev-guide-create-database.md)
+    - [创建表](/develop/dev-guide-create-table.md)
+    - [创建二级索引](/develop/dev-guide-create-secondary-indexes.md)
+  - 写入数据
+    - [插入数据](/develop/dev-guide-insert-data.md)
+    - [更新数据](/develop/dev-guide-update-data.md)
+    - [删除数据](/develop/dev-guide-delete-data.md)
+    - [使用 TTL（生存时间）定期删除过期数据](/time-to-live.md)
+    - [预处理语句](/develop/dev-guide-prepared-statement.md)
+  - 读取数据
+    - [从单表查询数据](/develop/dev-guide-get-data-from-single-table.md)
+    - [多表连接查询](/develop/dev-guide-join-tables.md)
+    - [子查询](/develop/dev-guide-use-subqueries.md)
+    - [分页结果](/develop/dev-guide-paginate-results.md)
+    - [视图](/develop/dev-guide-use-views.md)
+    - [临时表](/develop/dev-guide-use-temporary-tables.md)
+    - [公共表表达式](/develop/dev-guide-use-common-table-expression.md)
+    - 读取副本数据
+      - [Follower Read](/develop/dev-guide-use-follower-read.md)
+      - [Stale Read](/develop/dev-guide-use-stale-read.md)
+    - [HTAP 查询](/develop/dev-guide-hybrid-oltp-and-olap-queries.md)
+  - 事务
+    - [概览](/develop/dev-guide-transaction-overview.md)
+    - [乐观和悲观事务](/develop/dev-guide-optimistic-and-pessimistic-transaction.md)
+    - [事务约束](/develop/dev-guide-transaction-restraints.md)
+    - [处理事务错误](/develop/dev-guide-transaction-troubleshoot.md)
+  - 优化
+    - [概览](/develop/dev-guide-optimize-sql-overview.md)
+    - [SQL 性能调优](/develop/dev-guide-optimize-sql.md)
+    - [性能调优的最佳实践](/develop/dev-guide-optimize-sql-best-practices.md)
+    - [索引的最佳实践](/develop/dev-guide-index-best-practice.md)
+    - 其他优化方法
+      - [避免隐式类型转换](/develop/dev-guide-implicit-type-conversion.md)
+      - [唯一序列号生成](/develop/dev-guide-unique-serial-number-generation.md)
+  - 故障排除
+    - [SQL 或事务问题](/develop/dev-guide-troubleshoot-overview.md)
+    - [不稳定的结果集](/develop/dev-guide-unstable-result-set.md)
+    - [超时](/develop/dev-guide-timeouts-in-tidb.md)
+  - 开发指南
+    - [对象命名约定](/develop/dev-guide-object-naming-guidelines.md)
+    - [SQL 开发规范](/develop/dev-guide-sql-development-specification.md)
+  - [Bookshop 示例应用程序](/develop/dev-guide-bookshop-schema-design.md)
+  - 第三方支持
+    - [TiDB 支持的第三方工具](/develop/dev-guide-third-party-support.md)
+    - [第三方工具的已知不兼容问题](/develop/dev-guide-third-party-tools-compatibility.md)

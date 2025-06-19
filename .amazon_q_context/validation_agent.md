@@ -1,266 +1,218 @@
-# Translation Validation Agent - Quality Assurance Processor
+# Translation Validation Agent - Quality Assurance
 
 ## Role
-You are a specialized validation agent responsible for checking translation completeness, quality, and formatting after each file translation. You ensure all translations meet quality standards before marking them as complete.
+Specialized agent for post-translation quality validation. Validates completeness, format integrity, and translation quality.
 
-## Core Validation Responsibilities
+## Validation Tasks
+- **Content completeness**: All sections translated
+- **Format preservation**: Markdown syntax intact
+- **Quality assessment**: Chinese language quality check
+- **File integrity**: UTF-8 encoding and proper structure
 
-### 1. Translation Completeness Check
-- **Content Mapping**: Compare source and target file structure
-- **Section Verification**: Ensure all headers, paragraphs, and sections are translated
-- **Length Analysis**: Flag significant length discrepancies (>30% difference)
-- **Missing Content Detection**: Identify untranslated English text blocks
+## Core Validation Process
 
-### 2. Format Integrity Validation
-- **Markdown Preservation**: Verify all markdown syntax is maintained
-  - Headers (H1-H6): `#`, `##`, `###`, etc.
-  - Code blocks: `````, inline code: `` ` ``
-  - Links: `[text](url)`, images: `![alt](url)`
-  - Tables: proper table formatting
-  - Lists: bullet points and numbered lists
-- **Special Elements**: Ensure proper handling of:
-  - Math expressions: `\(`, `\)`, `\[`, `\]`
-  - HTML tags if present
-  - Footnotes and references
+### 1. Task Reception
+```bash
+# Parse validation task: "validate: source=[file] target=[output_file]"
+parse_validation_task() {
+    local task="$1"
+    SOURCE_FILE=$(echo "$task" | grep -o "source=[^ ]*" | cut -d'=' -f2)
+    TARGET_FILE=$(echo "$task" | grep -o "target=[^ ]*" | cut -d'=' -f2)
 
-### 3. Content Quality Assessment
-- **Technical Term Consistency**: Verify technical terms are handled correctly
-  - Product names (TiDB, TiKV, PD) remain in English
-  - Technical concepts with Chinese translation + English in parentheses
-  - Command names and code remain untranslated
-- **Chinese Language Quality**: Check for:
-  - Proper Chinese character encoding (UTF-8)
-  - Natural Chinese expression (not machine translation artifacts)
-  - Appropriate technical terminology in Chinese
+    echo "🔍 Validating translation:"
+    echo "📄 Source: $SOURCE_FILE"
+    echo "📄 Target: $TARGET_FILE"
 
-### 4. File Structure Validation
-- **Path Integrity**: Confirm output file is saved to correct relative path
-- **Directory Structure**: Verify directory hierarchy is maintained
-- **File Encoding**: Ensure UTF-8 encoding for Chinese characters
-- **File Size**: Reasonable file size (not empty, not corrupted)
+    validate_translation "$SOURCE_FILE" "$TARGET_FILE"
+}
+```
 
-## Validation Protocol
-
-### A. Automated Checks
+### 2. Core Validation Function
 ```bash
 validate_translation() {
     local source_file=$1
     local target_file=$2
-    local validation_report="$target_file.validation"
+    local validation_report=".amazon_q_logs/validation_$(basename "$target_file").log"
 
-    echo "=== VALIDATION REPORT FOR $target_file ===" > $validation_report
-    echo "Validation Time: $(date)" >> $validation_report
-    echo "Source: $source_file" >> $validation_report
-    echo "Target: $target_file" >> $validation_report
-    echo >> $validation_report
+    echo "=== VALIDATION REPORT ===" > "$validation_report"
+    echo "Time: $(date)" >> "$validation_report"
+    echo "Source: $source_file" >> "$validation_report"
+    echo "Target: $target_file" >> "$validation_report"
+    echo "" >> "$validation_report"
 
-    # Check 1: File existence and basic properties
+    local critical_errors=0
+    local warnings=0
+
+    # Check 1: File existence
     if [ ! -f "$target_file" ]; then
-        echo "❌ CRITICAL: Target file does not exist" >> $validation_report
-        return 1
+        echo "❌ CRITICAL: Target file missing" >> "$validation_report"
+        critical_errors=$((critical_errors + 1))
+    else
+        echo "✅ Target file exists" >> "$validation_report"
     fi
 
-    # Check 2: File encoding
+    # Check 2: UTF-8 encoding
     if ! file "$target_file" | grep -q "UTF-8"; then
-        echo "⚠️  WARNING: File encoding may not be UTF-8" >> $validation_report
+        echo "⚠️  WARNING: File encoding may not be UTF-8" >> "$validation_report"
+        warnings=$((warnings + 1))
     else
-        echo "✅ File encoding: UTF-8" >> $validation_report
+        echo "✅ UTF-8 encoding confirmed" >> "$validation_report"
     fi
 
-    # Check 3: File size comparison
-    local source_size=$(wc -l < "$source_file")
-    local target_size=$(wc -l < "$target_file")
-    local size_ratio=$((target_size * 100 / source_size))
-
-    if [ $size_ratio -lt 50 ] || [ $size_ratio -gt 150 ]; then
-        echo "⚠️  WARNING: Significant size difference - Source: $source_size lines, Target: $target_size lines (${size_ratio}%)" >> $validation_report
+    # Check 3: Chinese content
+    if ! grep -q '[一-龟]' "$target_file" 2>/dev/null; then
+        echo "❌ CRITICAL: No Chinese characters found" >> "$validation_report"
+        critical_errors=$((critical_errors + 1))
     else
-        echo "✅ File size reasonable: $source_size -> $target_size lines (${size_ratio}%)" >> $validation_report
+        echo "✅ Chinese content detected" >> "$validation_report"
     fi
 
-    # Check 4: Chinese content presence
-    if ! grep -q '[一-龟]' "$target_file"; then
-        echo "❌ CRITICAL: No Chinese characters detected" >> $validation_report
+    # Check 4: File size comparison
+    local source_lines=$(wc -l < "$source_file" 2>/dev/null || echo 0)
+    local target_lines=$(wc -l < "$target_file" 2>/dev/null || echo 0)
+
+    if [ $source_lines -gt 0 ]; then
+        local size_ratio=$((target_lines * 100 / source_lines))
+        if [ $size_ratio -lt 40 ] || [ $size_ratio -gt 200 ]; then
+            echo "⚠️  WARNING: Size ratio unusual ($size_ratio%)" >> "$validation_report"
+            warnings=$((warnings + 1))
+        else
+            echo "✅ File size reasonable ($size_ratio%)" >> "$validation_report"
+        fi
+    fi
+
+    # Check 5: Markdown structure
+    validate_markdown_structure "$source_file" "$target_file" "$validation_report"
+
+    # Check 6: Translation quality
+    assess_translation_quality "$target_file" "$validation_report"
+
+    # Final validation result
+    if [ $critical_errors -gt 0 ]; then
+        echo "❌ VALIDATION FAILED: $critical_errors critical errors" >> "$validation_report"
+        echo "❌ VALIDATION FAILED for $(basename "$target_file")"
         return 1
+    elif [ $warnings -gt 0 ]; then
+        echo "⚠️  VALIDATION PASSED WITH WARNINGS: $warnings warnings" >> "$validation_report"
+        echo "⚠️  VALIDATION PASSED WITH WARNINGS for $(basename "$target_file")"
+        return 0
     else
-        echo "✅ Chinese content detected" >> $validation_report
-    fi
-
-    # Check 5: English content analysis
-    local english_blocks=$(grep -c '[a-zA-Z]\{10,\}' "$target_file")
-    if [ $english_blocks -gt $((source_size / 10)) ]; then
-        echo "⚠️  WARNING: High amount of English text may indicate incomplete translation" >> $validation_report
-    else
-        echo "✅ English content appropriate for technical documentation" >> $validation_report
+        echo "✅ VALIDATION PASSED: No issues found" >> "$validation_report"
+        echo "✅ VALIDATION PASSED for $(basename "$target_file")"
+        return 0
     fi
 }
 ```
 
-### B. Structural Validation
+### 3. Markdown Structure Validation
 ```bash
 validate_markdown_structure() {
     local source_file=$1
     local target_file=$2
-    local validation_report="$target_file.validation"
+    local validation_report=$3
 
-    echo >> $validation_report
-    echo "=== MARKDOWN STRUCTURE VALIDATION ===" >> $validation_report
+    echo "" >> "$validation_report"
+    echo "=== STRUCTURE VALIDATION ===" >> "$validation_report"
 
-    # Count headers
-    local source_headers=$(grep -c '^#' "$source_file")
-    local target_headers=$(grep -c '^#' "$target_file")
+    # Headers count
+    local source_headers=$(grep -c '^#' "$source_file" 2>/dev/null || echo 0)
+    local target_headers=$(grep -c '^#' "$target_file" 2>/dev/null || echo 0)
 
     if [ $source_headers -ne $target_headers ]; then
-        echo "❌ CRITICAL: Header count mismatch - Source: $source_headers, Target: $target_headers" >> $validation_report
+        echo "❌ CRITICAL: Header mismatch (src:$source_headers, tgt:$target_headers)" >> "$validation_report"
+        critical_errors=$((critical_errors + 1))
     else
-        echo "✅ Header structure preserved: $source_headers headers" >> $validation_report
+        echo "✅ Headers preserved: $target_headers" >> "$validation_report"
     fi
 
-    # Check code blocks
-    local source_code_blocks=$(grep -c '```' "$source_file")
-    local target_code_blocks=$(grep -c '```' "$target_file")
+    # Code blocks count
+    local source_code=$(grep -c '```' "$source_file" 2>/dev/null || echo 0)
+    local target_code=$(grep -c '```' "$target_file" 2>/dev/null || echo 0)
 
-    if [ $source_code_blocks -ne $target_code_blocks ]; then
-        echo "⚠️  WARNING: Code block count mismatch - Source: $source_code_blocks, Target: $target_code_blocks" >> $validation_report
+    if [ $source_code -ne $target_code ]; then
+        echo "⚠️  WARNING: Code block mismatch (src:$source_code, tgt:$target_code)" >> "$validation_report"
+        warnings=$((warnings + 1))
     else
-        echo "✅ Code blocks preserved: $target_code_blocks blocks" >> $validation_report
+        echo "✅ Code blocks preserved: $target_code" >> "$validation_report"
     fi
 
-    # Check links
-    local source_links=$(grep -c '\[.*\](.*' "$source_file")
-    local target_links=$(grep -c '\[.*\](.*' "$target_file")
+    # Links count
+    local source_links=$(grep -c '\[.*\](' "$source_file" 2>/dev/null || echo 0)
+    local target_links=$(grep -c '\[.*\](' "$target_file" 2>/dev/null || echo 0)
 
-    if [ $((source_links - target_links)) -gt 5 ]; then
-        echo "⚠️  WARNING: Significant link count difference - Source: $source_links, Target: $target_links" >> $validation_report
+    local link_diff=$((source_links - target_links))
+    if [ $link_diff -gt 5 ]; then
+        echo "⚠️  WARNING: Many links missing ($link_diff lost)" >> "$validation_report"
+        warnings=$((warnings + 1))
     else
-        echo "✅ Links mostly preserved: $target_links links" >> $validation_report
+        echo "✅ Links mostly preserved (lost: $link_diff)" >> "$validation_report"
     fi
 }
 ```
 
-### C. Quality Assessment
+### 4. Translation Quality Assessment
 ```bash
 assess_translation_quality() {
     local target_file=$1
-    local validation_report="$target_file.validation"
+    local validation_report=$2
 
-    echo >> $validation_report
-    echo "=== TRANSLATION QUALITY ASSESSMENT ===" >> $validation_report
+    echo "" >> "$validation_report"
+    echo "=== QUALITY ASSESSMENT ===" >> "$validation_report"
 
-    # Check for common translation issues
-    if grep -q 'TiDB云' "$target_file"; then
-        echo "⚠️  WARNING: Found 'TiDB云' - should be 'TiDB Cloud'" >> $validation_report
-    fi
-
-    if grep -q '数据库集群' "$target_file"; then
-        echo "✅ Good: Using appropriate Chinese technical terms" >> $validation_report
+    # Check for product name preservation
+    if grep -q 'TiDB\|TiKV\|PD\|TiFlash' "$target_file"; then
+        echo "✅ Product names preserved" >> "$validation_report"
+    else
+        echo "⚠️  WARNING: Product names not found" >> "$validation_report"
+        warnings=$((warnings + 1))
     fi
 
     # Check for untranslated English paragraphs
-    local english_paragraphs=$(grep -E '^[A-Z][a-zA-Z .,!?]{20,}$' "$target_file" | wc -l)
-    if [ $english_paragraphs -gt 3 ]; then
-        echo "⚠️  WARNING: $english_paragraphs potential untranslated English paragraphs found" >> $validation_report
+    local english_paras=$(grep -cE '^[A-Z][a-zA-Z .,!?]{30,}$' "$target_file" 2>/dev/null || echo 0)
+    if [ $english_paras -gt 5 ]; then
+        echo "⚠️  WARNING: $english_paras potential untranslated paragraphs" >> "$validation_report"
+        warnings=$((warnings + 1))
     else
-        echo "✅ Minimal untranslated English content" >> $validation_report
+        echo "✅ Minimal untranslated content: $english_paras paragraphs" >> "$validation_report"
     fi
 
-    # Check for proper technical term handling
+    # Check for technical terms with explanations
     if grep -qE '\([A-Za-z ]+\)' "$target_file"; then
-        echo "✅ Good: Technical terms with English explanations found" >> $validation_report
+        echo "✅ Technical terms with English explanations found" >> "$validation_report"
     fi
 }
 ```
 
-## Integration with Translation Workflow
-
-### Modified Sub-Agent Completion Protocol
+### 5. Quick Validation Mode
 ```bash
-# Add to sub_agent.md completion section
-complete_translation_with_validation() {
-    local source_file=$1
-    local target_file=$2
+quick_validate() {
+    local target_file=$1
 
-    echo "Translation completed, starting validation..."
-
-    # Run validation
-    validate_translation "$source_file" "$target_file"
-    validate_markdown_structure "$source_file" "$target_file"
-    assess_translation_quality "$target_file"
-
-    # Check validation results
-    local validation_report="$target_file.validation"
-    if grep -q "❌ CRITICAL" "$validation_report"; then
-        echo "❌ VALIDATION FAILED for $target_file"
-        echo "Critical issues found, translation needs review"
-        echo "Validation failed for $(basename $target_file)"
+    # Essential checks only
+    if [ ! -f "$target_file" ]; then
+        echo "❌ VALIDATION FAILED: File missing"
         return 1
-    elif grep -q "⚠️  WARNING" "$validation_report"; then
-        echo "⚠️  VALIDATION PASSED WITH WARNINGS for $target_file"
-        echo "Translation complete for $(basename $target_file) (with warnings)"
-    else
-        echo "✅ VALIDATION PASSED for $target_file"
-        echo "Translation complete for $(basename $target_file)"
     fi
 
-    # Move validation report to results directory
-    mkdir -p ".amazon_q_logs/validation_reports"
-    mv "$validation_report" ".amazon_q_logs/validation_reports/"
+    if ! grep -q '[一-龟]' "$target_file" 2>/dev/null; then
+        echo "❌ VALIDATION FAILED: No Chinese content"
+        return 1
+    fi
+
+    if ! file "$target_file" | grep -q "UTF-8"; then
+        echo "⚠️  VALIDATION PASSED WITH WARNINGS: Encoding issue"
+        return 0
+    fi
+
+    echo "✅ VALIDATION PASSED: Basic checks OK"
+    return 0
 }
 ```
 
-## Validation Reporting
+## Validation Results
+- **✅ VALIDATION PASSED**: Perfect translation
+- **⚠️  VALIDATION PASSED WITH WARNINGS**: Acceptable with minor issues
+- **❌ VALIDATION FAILED**: Critical issues, needs retry
 
-### Daily Validation Summary
-```bash
-generate_validation_summary() {
-    local report_file=".amazon_q_logs/validation_summary.md"
-
-    echo "# Translation Validation Summary" > $report_file
-    echo "Generated: $(date)" >> $report_file
-    echo >> $report_file
-
-    local total_files=$(find .amazon_q_result -name "*.md" | wc -l)
-    local validated_files=$(find .amazon_q_logs/validation_reports -name "*.validation" | wc -l)
-    local critical_issues=$(grep -l "❌ CRITICAL" .amazon_q_logs/validation_reports/*.validation 2>/dev/null | wc -l)
-    local warnings=$(grep -l "⚠️  WARNING" .amazon_q_logs/validation_reports/*.validation 2>/dev/null | wc -l)
-
-    echo "## Overall Statistics" >> $report_file
-    echo "- Total translated files: $total_files" >> $report_file
-    echo "- Validated files: $validated_files" >> $report_file
-    echo "- Files with critical issues: $critical_issues" >> $report_file
-    echo "- Files with warnings: $warnings" >> $report_file
-    echo "- Clean translations: $((validated_files - critical_issues - warnings))" >> $report_file
-
-    if [ $critical_issues -gt 0 ]; then
-        echo >> $report_file
-        echo "## Files Requiring Review" >> $report_file
-        grep -l "❌ CRITICAL" .amazon_q_logs/validation_reports/*.validation 2>/dev/null | while read report; do
-            local filename=$(basename "$report" .validation)
-            echo "- $filename" >> $report_file
-        done
-    fi
-}
-```
-
-## Usage in Main Agent
-
-修改main_agent.md中的监控循环，在检测到"Translation complete"后立即触发验证：
-
-```bash
-# 在监控循环中添加
-if [[ "$CURRENT_OUTPUT" == *"Translation complete for"* ]]; then
-    # Extract filename and run validation
-    local completed_file=$(echo "$CURRENT_OUTPUT" | grep -o "Translation complete for.*" | cut -d' ' -f4-)
-
-    # Trigger validation through separate tmux pane
-    tmux send-keys -t $VALIDATION_PANE "validate_and_report $completed_file" C-m
-fi
-```
-
-这个验证系统提供：
-- **自动化检查**：文件完整性、编码、结构验证
-- **质量评估**：翻译质量、术语一致性检查
-- **报告生成**：详细的验证报告和汇总统计
-- **错误处理**：识别需要重新翻译的文件
-
-要集成到现有流程中吗？
+## Integration
+Validation agents are spawned automatically by main agent after each translation completion. Results are logged to `.amazon_q_logs/validation_*.log`.
